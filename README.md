@@ -1,6 +1,6 @@
 # BulkTRX
 
-BulkTRX is a simple yet powerful script designed to facilitate the batch checking of TRX and token balances for multiple addresses on the TRON network.
+BulkTRX is a simple yet powerful script designed to facilitate the batch checking of TRX and (TRC20) token balances for multiple addresses on the TRON network.
 
 ## Features
 
