@@ -38,6 +38,7 @@ Additionally, you'll need a free API key from Tronscan.
 
 ## Usage
 
+* Note: Ensure addresses are listed one per line in `addr.txt` before running the script.
 * To check TRX balances, simply run the script without any arguments:
 
 ```bash
