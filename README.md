@@ -22,18 +22,11 @@ To use BulkTRX, you need to have the following prerequisites set up:
 
 Additionally, you'll need a free API key from Tronscan.
 
-### Installation
-
 1. **Install Python libraries**:
-   Run the following command to install the necessary Python libraries:
 
    ```bash
    pip install requests tronapi
    ```
-### Obtain a Tronscan API Key
-
-1. Visit [Tronscan](https://tronscan.org) and sign up for an account if you haven't already.
-2. Navigate to the API Key section and generate a new API key.
 
 ### Configure your API key
 
