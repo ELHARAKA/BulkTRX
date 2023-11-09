@@ -1,32 +1,34 @@
 # BulkTRX
 
-BulkTRX is a simple yet powerful script designed to facilitate the batch checking of TRX and (TRC20) token balances for multiple addresses on the TRON network.
+BulkTRX is a Python-based utility for efficiently checking TRX and TRC20 token balances across multiple accounts on the TRON blockchain. It supports input from both TRON addresses and private keys, streamlining the process for users and developers managing multiple wallets.
 
-## Upcoming Feature
+## Features
 
-- Automate transfers of detected TRX and Token balances to a chosen wallet address
+- **Dual Input Compatibility**: Accepts both TRON addresses and private keys from a single input file.
+- **Batch Processing**: Enables the simultaneous balance checking of numerous accounts.
+- **API Rate Limit Compliance**: Designed to respect TRON API's rate limits, preventing overuse penalties.
+- **Real-Time Feedback**: Provides progress updates and summaries directly in the console.
+- **Error Logging**: Outputs invalid entries to a separate file for easy correction and reprocessing.
 
-## What BulkTRX do?
-
-- Batch processing: Check balances for multiple addresses in one go.
-- Rate limiting: Respects the TRON API's rate limit for optimal performance without hitting the limit.
-- Ease of use: Simple setup process and user-friendly interface.
-
-## Getting Started
-
-To use BulkTRX, you need to have the following prerequisites set up:
+## Prerequisites
 
 - Python 3.6 or higher
-- The `requests` library for making HTTP requests
-- The `tronapi` library to interact with the TRON blockchain
+- `requests` library
+- `tronapi` library
+- Tronscan API key
 
-Additionally, you'll need a free API key from Tronscan.
+## Installation
 
-1. **Install Python libraries**:
+- **Install the required Python libraries**:
+   Run the following command to install the necessary Python libraries:
 
    ```bash
    pip install requests tronapi
    ```
+### Obtain a Tronscan API Key
+
+1. Visit [Tronscan](https://tronscan.org) and sign up for an account if you haven't already.
+2. Navigate to the API Key section and generate a new API key.
 
 ### Configure your API key
 
@@ -35,24 +37,24 @@ Additionally, you'll need a free API key from Tronscan.
 
 ## Usage
 
-* Note: Ensure addresses are listed one per line in `addr.txt` before running the script.
-* To check TRX balances, simply run the script without any arguments:
+* Prepare an input file named wallets.txt with TRON addresses or private keys, each on a new line.
+* Run BulkTRX:
 
 ```bash
 python3 BulkTRX.py
 ```
 
-* To check token balances, add --token followed by the contract address.
+* To check balances for a specific token, use the `--token` argument
 
 ```bash
 python3 BulkTRX.py --token=<TOKEN_CONTRACT_ADDRESS>
 ```
 
-* The script tracks progress in the terminal and upon completion, lists found balances, also saved in `found.txt`.
+* Found balances will be saved in `found.txt`. Addresses or keys that could not be processed will be logged in `invalid.txt`.
 
 ## Contributing
 
-Contributions make the open-source community an incredible place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **highly appreciated**.
 
 If you have a suggestion that would make this better, please fork the repository and create a pull request. You can also simply open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
