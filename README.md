@@ -2,7 +2,11 @@
 
 BulkTRX is a simple yet powerful script designed to facilitate the batch checking of TRX and (TRC20) token balances for multiple addresses on the TRON network.
 
-## Features
+## Upcoming Feature
+
+- Automate transfers of detected TRX and Token balances to a chosen wallet address
+
+## What BulkTRX do?
 
 - Batch processing: Check balances for multiple addresses in one go.
 - Rate limiting: Respects the TRON API's rate limit for optimal performance without hitting the limit.
@@ -18,18 +22,11 @@ To use BulkTRX, you need to have the following prerequisites set up:
 
 Additionally, you'll need a free API key from Tronscan.
 
-### Installation
-
 1. **Install Python libraries**:
-   Run the following command to install the necessary Python libraries:
 
    ```bash
    pip install requests tronapi
    ```
-### Obtain a Tronscan API Key
-
-1. Visit [Tronscan](https://tronscan.org) and sign up for an account if you haven't already.
-2. Navigate to the API Key section and generate a new API key.
 
 ### Configure your API key
 
