@@ -1,5 +1,4 @@
-# BulkTRX
-# Version: 1.0.0
+# BulkTRX (V1.2.0)
 # Developed by Fahd El Haraka ©
 # Email: fahd@web3dev.ma
 # Telegram: @thisiswhosthis
@@ -13,6 +12,7 @@ import requests
 import concurrent.futures
 from tronapi import Tron
 from tronapi import HttpProvider
+from threading import Semaphore
 
 # Constants for API rate limiting
 MAX_CALLS_PER_SECOND = 5
@@ -25,16 +25,17 @@ for arg in sys.argv:
     if arg.startswith('--token='):
         token_contract = arg.split('=')[1]
 
-# Initialize Tron API with the provided node details
-full_node = HttpProvider('https://api.trongrid.io')
-solidity_node = HttpProvider('https://api.trongrid.io')
-event_server = HttpProvider('https://api.trongrid.io')
+# Initialize Tron API
+node_url = 'https://api.trongrid.io'
 
-tron = Tron(full_node=full_node,
-            solidity_node=solidity_node,
-            event_server=event_server)
+tron = Tron(
+    full_node=HttpProvider(node_url),
+    solidity_node=HttpProvider(node_url),
+    event_server=HttpProvider(node_url)
+)
 
 def get_api_key():
+    """Get api Key or set one at first run"""
     api_key_file = 'api.txt'
     api_key = None
 
@@ -50,28 +51,32 @@ def get_api_key():
 
 API_KEY = get_api_key()
 
+api_call_semaphore = Semaphore(MAX_CALLS_PER_SECOND)
+
 def get_trx_balance(address):
-    time.sleep(SLEEP_TIME)
-    balance_sun = tron.trx.get_balance(address)
+    with api_call_semaphore:
+        time.sleep(SLEEP_TIME)
+        balance_sun = tron.trx.get_balance(address)
     return balance_sun / 1_000_000
 
 def get_token_balance(address, contract_address):
-    time.sleep(SLEEP_TIME)
-    url = f"https://apilist.tronscanapi.com/api/account/wallet?address={address}&asset_type=0"
-    headers = {
-        "TRON-PRO-API-KEY": API_KEY,
-    }
+    with api_call_semaphore:
+        time.sleep(SLEEP_TIME)
+        url = f"https://apilist.tronscanapi.com/api/account/wallet?address={address}&asset_type=0"
+        headers = {
+            "TRON-PRO-API-KEY": API_KEY,
+        }
 
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        result = response.json()
-        balance = 0
-        token_abbr = ""
-        for token in result['data']:
-            if token['token_id'] == contract_address:
-                balance = float(token['balance'])
-                token_abbr = token['token_abbr']
-                return balance, token_abbr
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            result = response.json()
+            balance = 0
+            token_abbr = ""
+            for token in result['data']:
+                if token['token_id'] == contract_address:
+                    balance = float(token['balance'])
+                    token_abbr = token['token_abbr']
+                    return balance, token_abbr
     return 0, ""
 
 def save_found_addresses(address, trx_balance, token_balance=None):
@@ -112,21 +117,47 @@ def check_address(address):
         return {'address': address, 'trx': trx_balance, 'token': token_balance, 'token_abbr': token_abbr}
     return None
 
+def get_address_from_private_key(private_key):
+    local_tron = Tron(
+        full_node=HttpProvider(node_url),
+        solidity_node=HttpProvider(node_url),
+        event_server=HttpProvider(node_url)
+    )
+    local_tron.private_key = private_key
+    address = local_tron.address.from_private_key(private_key).base58
+    return address
+
+def get_addresses_from_input(filename):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+
+    addresses = []
+    with open('invalid.txt', 'w') as invalid_file:
+        for line in lines:
+            key = line.strip()
+            if len(key) == 34 and key.startswith('T'):
+                addresses.append(key)
+            elif len(key) == 64 and all(c in '0123456789abcdefABCDEF' for c in key):
+                addresses.append(get_address_from_private_key(key))
+            else:
+                invalid_file.write(key + '\n')
+
+    return addresses
+
 def main():
     global start_time
     start_time = time.time()
-    with open('addr.txt') as f:
-        addresses = f.read().splitlines()
 
+    addresses = get_addresses_from_input('wallets.txt')
     total_addresses = len(addresses)
     found_balances = []
 
-    chunks = [addresses[i:i + 4] for i in range(0, len(addresses), 4)]
-
+    # Consider reducing chunk size or workers if rate limit errors persist
+    chunks = [addresses[i:i + 3] for i in range(0, len(addresses), 3)]
     total_processed = 0
 
-    for _, address_chunk in enumerate(chunks):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+    for address_chunk in chunks:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             future_to_address = {executor.submit(check_address, address): address for address in address_chunk}
             for future in concurrent.futures.as_completed(future_to_address):
                 try:
@@ -134,21 +165,29 @@ def main():
                     if balance_info:
                         found_balances.append(balance_info)
                 except Exception as exc:
-                    address = future_to_address[future]
-                    print(f"\n{address} generated an exception: {exc}")
+                    if '503' in str(exc):
+                        print("503 error, backing off for 5 seconds.")
+                        time.sleep(5)
+                    else:
+                        address = future_to_address[future]
+                        print(f"\n{address} generated an exception: {exc}")
 
         total_processed += len(address_chunk)
         print_progress(total_processed, total_addresses)
 
-        time.sleep(1)
+        # Sleep for a short duration to prevent hitting rate limit
+        time.sleep(0.2)
 
-    sys.stdout.write("\rFinished checking all addresses. Check 'found.txt' file." + " " * 50 + "\n")
+    sys.stdout.write("\rFinished checking all addresses. Check 'found.txt' for found balances." + " " * 50 + "\n")
     sys.stdout.flush()
 
     if found_balances:
         print("Addresses with balances found:")
         for balance in found_balances:
             print(f"{balance['address']} : {balance['trx']} TRX, {balance['token']} {balance['token_abbr']}")
+
+    if os.path.isfile('invalid.txt') and os.path.getsize('invalid.txt') > 0:
+        print("Invalid addresses or private keys detected. Check 'invalid.txt' for details.")
 
 if __name__ == "__main__":
     main()
