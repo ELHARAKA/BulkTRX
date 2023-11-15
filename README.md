@@ -10,25 +10,27 @@ BulkTRX is a Python-based utility for efficiently checking TRX and TRC20 token b
 - **Real-Time Feedback**: Provides progress updates and summaries directly in the console.
 - **Error Logging**: Outputs invalid entries to a separate file for easy correction and reprocessing.
 
+
 ## Prerequisites
 
-- Python 3.6 or higher
-- `requests` library
-- `tronapi` library
-- Tronscan API key
+Before you begin, ensure you have met the following requirements:
 
-## Installation
-
-- **Install the required Python libraries**:
-   Run the following command to install the necessary Python libraries:
-
-   ```bash
-   pip install requests tronapi
-   ```
-### Obtain a Tronscan API Key
-
-1. Visit [Tronscan](https://tronscan.org) and sign up for an account if you haven't already.
-2. Navigate to the API Key section and generate a new API key.
+- **Python 3.6 or Higher**: Your system must have Python 3.6 or a higher version installed.
+- **Python Development Headers**: For compiling certain Python extensions, you need to have Python development headers installed.
+  ```bash
+  sudo apt-get install python3.9-dev
+  ```
+- **Required Libraries**:
+- `requests`: A library for making HTTP requests. Install it using:
+  ```
+  pip install requests
+  ```
+- `tronapi`: A Python API for interacting with Tron (TRX). Install it using:
+  ```
+  pip install tronapi
+  ```
+  Note: Installing `tronapi` might require additional dependencies such as `pysha3`, which in turn may require Python development headers to be installed on your system.
+- **Tronscan API Key**: You will need a Tronscan API Key for some functionalities. Obtain it from [Tronscan](https://tronscan.org).
 
 ### Configure your API key
 
